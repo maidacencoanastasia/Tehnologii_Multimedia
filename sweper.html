@@ -1,0 +1,1168 @@
+
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Minesweeper 2011 | Play online at Vesna.in.ua</title>
+    <meta name="description" content="Classic Minesweeper game, now in HTML5/CSS. Two-button mouse recommended for input. Modern browser required to play." />
+    <meta name="version" content="1.1.1" />
+    <meta name="author" content="Constantine Vesna" />
+    <meta name="contact" content="http://my.opera.com/c69/" />
+<!--
+
+For bugs, questions, or general feedback - contact me at my blog.
+
+Playing with stylus or touch input is possible, but not very comfortable,
+ because its hard to do 'right click' with them.
+If you don't have right mouse button, or play with touch/stylus - use 'Ctrl' key to flag mines.
+
+Device experience:
+- Android smartphones: only Novice mode is recommended. Flagging is not possible.
+- iPad: Novice or Normal modes are recommended. Flagging is not possible. Rapid tapping will center screen. Minor redraw delays.
+- other devices: untested. (your experience is welcome)
+
+__________
+Changelog:
+
+1.1:
++ Removed possibility to die on first-click 
++ Disabled annoying tap highlight on iPad
++ Game loads faster now
++ Enabled playing from Google cache
++ Added white background to look better on iframe includes
+
+1.1.1:
++ Added fix for bug with gradients in Opera 11.60 ( DSK-347689 )
+
+1.2:
+TODO: Disable double-tap zooming on iPad
+TODO: Disable delayed texture-loading on iPad (bombs are not shown first time you die )
+
+-->
+    <link rel="icon" type="image/png" href="" />
+    
+    <style>
+body {      
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background: white;
+}
+
+#map {
+    text-align: center;
+    border: 48px solid #eeeeee;
+    border-right-width: 80px;
+    border-left-width: 80px;
+    position: relative; 
+    display: block;
+    margin: auto;
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+    
+    width: 750px;
+}
+
+#map::selection {
+    background: transparent;
+}
+
+#map,
+#map .td {
+    background-color: #d3d5d7;
+}   
+
+#map .td {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    line-height: 24px;
+    font-size: 18px;
+    padding: 0;
+
+    border-right: 1px dotted #aaaaaa;
+    border-bottom: 1px dotted #aaaaaa;
+    font-weight: bold;
+    font-family: "Courier New";
+    
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+#map.defeat .bomb {
+    color: transparent;
+    border-right: 1px dotted #aaaaaa;
+    border-bottom: 1px dotted #aaaaaa;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box; 
+}
+
+#map .bomb.fail {
+    border: 0px solid transparent;
+    border-right: 1px dotted #aaaaaa;
+    border-bottom: 1px dotted #aaaaaa;
+    -moz-box-shadow: inset 0px 0px 10px red;    
+    box-shadow: inset 0px 0px 10px red;
+}
+
+#map .x1 { color: #4a4ab1; }
+#map .x2 { color: #3c9c19; }
+#map .x3 { color: #df8e1e; }
+#map .x4 { color: #de2b3a; }
+#map .x5 { color: #c919d0; }
+#map .x6 { color: yellow; }
+#map .x7 { color: gray; }
+#map .x8 { color: black; }
+
+#map .tile:hover {
+    
+}
+
+#map .tile {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    color: transparent;
+    line-height: 24px;
+    font-size: 21px;
+    padding: 0;
+    font-weight: bold;
+    font-family: 'Courier New';
+    text-align: center;
+}
+
+#map .tile.flag {
+    color: black;
+    text-shadow: 1px 1px 1px white; /* lags Mozilla */
+}
+
+#map .tile.wrong {
+    color: crimson;
+    text-shadow: 1px 1px 1px white; /* lags Mozilla */
+}
+
+#map .overlay { 
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+}
+
+#map .overlay span {
+    display: inline-block; /* hello webkitty */
+    -webkit-transform: rotate(-5deg);
+    -webkit-transform-origin: center center;
+    -moz-transform: rotate(-5deg);
+    -moz-transform-origin: center center;
+    -ms-transform: rotate(-5deg);
+    -ms-transform-origin: center center;
+    -o-transform: rotate(-5deg);
+    -o-transform-origin: center center;
+    transform: rotate(-5deg);
+    transform-origin: center center;    
+}
+
+#map .gameover {
+    background: rgba(225,0,0, 0.10);
+    background: -webkit-linear-gradient( 90deg, hsla(0,90%,75%,0.35) 15%, hsla(0,40%,20%,0.15) 95%);
+    background:    -moz-linear-gradient( 90deg, hsla(0,90%,75%,0.35) 15%, hsla(0,40%,20%,0.15) 95%);    
+    background:     -ms-linear-gradient( 90deg, hsla(0,90%,75%,0.35) 15%, hsla(0,40%,20%,0.15) 95%);    
+    background:      -o-linear-gradient( 90deg, hsla(0,90%,75%,0.35) 15%, hsla(0,40%,20%,0.15) 95%);    
+    background:         linear-gradient( 90deg, hsla(0,90%,75%,0.35) 15%, hsla(0,40%,20%,0.15) 95%);    
+    box-shadow: inset 0 0 10px #000000;
+    -moz-box-shadow: inset 0 0 10px #000000;
+    
+    padding-top: 15%;
+    font-size: 80px;
+    line-height: 85px;
+    color: hsla(35,80%,98%,0);
+    font-weight: bold;
+}
+
+#map .victory {
+    background: rgba(120,200,255,0.15);
+    background: -webkit-linear-gradient( -135deg, hsla(195,80%,95%,0.45) 15%, hsla(195,40%,30%,0.25) 95%);
+    background:    -moz-linear-gradient( -135deg, hsla(195,80%,95%,0.45) 15%, hsla(195,40%,30%,0.25) 95%);  
+    background:     -ms-linear-gradient( -135deg, hsla(195,80%,95%,0.45) 15%, hsla(195,40%,30%,0.25) 95%);  
+    background:      -o-linear-gradient( -134deg, hsla(195,80%,95%,0.45) 15%, hsla(195,40%,30%,0.25) 95%);  /* fix for DSK-347689 in Opera 10.60 */
+    background:         linear-gradient( -135deg, hsla(195,80%,95%,0.45) 15%, hsla(195,40%,30%,0.25) 95%);  
+    
+    -moz-box-shadow: inset 0 0 10px #000000;
+    box-shadow: inset 0 0 10px #000000;
+    
+    padding-top: 15%;
+    font-size: 130px;
+    line-height: 135px;
+    color: hsla(195,85%,25%,0.25);
+    font-weight: bold;
+}
+
+#map .victory:hover {
+    color: white;
+    text-shadow: -2px 1px 3px hsla(195,60%,15%,1);
+}
+
+#map .gameover.re {
+    color: hsla(35,80%,98%,0.65);
+    cursor: pointer;
+}
+
+#map .gameover.re:hover {
+    cursor: pointer;
+}
+
+.menu a,
+.menu a:visited {
+    display: inline-block;
+    text-decoration: none;
+    padding: 0.2em 0.4em;
+    color: darkblue;
+}
+
+.menu a:target {
+    background: #eeeeee;
+    color: black;
+}
+.menu a b {
+    display: none;
+    color: black;
+    vertical-align: bottom;
+    font-size: 11pt;
+    line-height: 17px;
+    height: 17px;   
+}
+.menu a:target b {
+    display: inline-block;
+}
+
+.menu a:target span {
+    margin-left: 0.3em;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAB4CAYAAAD7VHJWAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAf9SURBVHja7FlrbBTXFT6zM/t++LG79hrbgG2atYhxEtmBQHiVoqY0bZFSolKcRDRVq4oqjVqlUpWqCqhIpVLSh6o2UpSqSYBCsaOAmj7UUAooDYqwY1IwYDB+rNfrXXvX+96Z2Znd6bnjO/YY1ohHf/THXunTfZ5vzj1n7zn32oyiKHA/hZt653uLzbkRLyBeR0QWW2S4DfkaxB7ExttpsBiBEbEzf+mUF+uvIWx3S9CO+Dw/OU7amxEdd0JA2hZEBeLruYFztdEZHnIXzxJbdCGWIFwIE4KZMyLiB4h6hAdRQ+sH0sNXQJaKkBm5BrZVG5+jmswgYogA4lPEMY4yf1v4zymHkOWhKAogpJKQTglQxIl4Kg/y8TetnM3hZ81mMJgsULV2m4BTv9PU/jHiZUv7lvhMXIDRkQiEYwLwMoCIIHU4nodQaAamYzkinML1P0fsRyQIgUh9/f3mL351Ekw2kIiwNA/SN1hs0PpUVxTX7UO8RpTTGxGXwDuIg+7P+FXVF4BhoH3nbtL8DVU9vZgbvTLP3+or/LmP9/dr2gqLuZG4b2UuEQfGYABnrQ/WfmuP4qyrV/t8nBgfVlE3gt6NWiHeWCrlsvDYN79DtnQe8be2L23fgvX6i8d7yFo/ohIxpQkxkbdf0Nrk1/YPRAbxFrXJMNkW4hl6LpyIJxG9pTQgXz2M+BP9ep6Ok6/9kpJ/4+ZzodeAo4eIv83hM1G7zRmSud+AYoD7LGWCMkGZ4H9EwB24EVhsbiuiB7EbcfxeNHi5xWUjgfYn97IFkh83NHhIBQ+RXHm3BD+ts5o5zCfQ6LCypH8nBCS1L6U3k+dW1NUACXZNNaoW20nKR3QifPpgTBqTNO+TgMpakXR5pQuq8PMSibBYr/JWmQMzyT8mC0XCSUCmQiTcEwJXo9Nua/ZWY4hl1JjtprE7Ry8D1S6nCnqxYMKJlHkwlqjVtvDAeDo7cT0SVWeNVLia1kYtfNN6LDoDKJzE5jbER4RgAtEWyvJXB4KTqm45ehXJUV014RvhKRhNZsL0tnJWn5kSJHFOi1I8U1QcYGAgRYVzlECSZQhmhTg1cqBUaiPFTFyX06cuajVM0Vr6CyzmxtWEkEEGTWW5UJgj4Qzq0irqxpLpfVud1aTKZgURzk9EFLq1yrZaN+Nx2MHBKFxGYR7FsT+X0sBj4jgYnJgkwsTKL9Fr3/ZLkVj4YmACqm1WoOm95Bb4sXSODwvSEWy3In5B90y+1hiTCgcCWSFHfybzNvrZ0JjWrqTuH77N4fPRFB8op/cyQZng/42gVMGopDAXX3R6Qj+CvUeftvtIX//YvEkDhdELPg3HDJthH+uqcKxzta7e0+C1bSZ9Ml6KyDAbDhRmL+xlOuANLghBU6Ml6XLUL9tl3bzD61vetMtiuFxNxsk8WacnMeArEL/abRiAlZwFEhYGrM7tW84+bvU3bzUsGwP3Kv+GL68Z2ETGnSCbBzAQ60m403DaAA+CIT4wbG02T1YzXKh2RZuly+x3ucnLx9H2WOWDbfZnHgl9GOOLlolUTo7+PdOUBlGRCAeT+JXthwXn8kaZ8foY1rFEZi01FU1LGm1rJizAXgUotEPiTK2UGgpG8hkxVuSlKX4yMBK/NNR/Migd5XiJqXe3tD9vfLjFDkYMsCy+LdnraJZRjMmS+kiv3LjUWLHO0gCSuaEQt8Hkuzbhah/kTkZwqUd+6bxbOsU77YlHjVWfmqGAuxQx34oYwfElD2IWEQQmj4E4HoTQ+9ey/+yO/vbX55te3d82HWU76g9wJ477rjkzn4g1pvTDFmfcwkiohaADL0FxgoHR94rpnoNVb/6+d+vrzuKz0/tDJ2SOXCEKikN+7cjzf7FVd3ducISfNNUXaEadL8n+otJz1P/Be5d3HquCikxBy41eu6U4YjDKiqkgupfYrIyIkkn6bNd53IhveJtRyVqgEl/urOwFe1ElCKWTRTA68o+sExm3NeRjZeSOovGnMc2n0ft1CnB4WzTj73B59ZQvBzMiA26pAN5ZgooGKAyNxaX1ayecdoh5GRRMh5nChSuV4x9fWza4pmW8pe2hmSZXlcL6XJm6WuNHbFralffCtDKb3qe9xbq6uFQd+gCKqYhxLG0InR6s/Wt3/+dOZzLrps8NXbF/ZfTExtUrQk+ZBMnX7rng/ffk40Pd8IqqAfuv3W/BJ0feV5obT3imEpLx4AXfq0f7nn2XzbePsyAncrIv9HG480Mhef0kJ6aUuFS4/ofU+hGAz85eXBQ8SMROLza2Gc+lZLM7+d38FJhZPBesDFaGA14RoLJQA2IhY36bDeG18oYY4uduPrNHlKFOI+19eLhWoikuz504L6xUuuEyrnlFmV9L/jKilA4S885T9CdXufVPK0r5flAmKBPcKcHhw4eVeyaIRiNKKpWCYHBcuSeCvr5+cLlcMDAwcPcaZDJpZXh4BLq6uoDUpF8ycGjxYHBwUMlkMjr1p8Hj8UJHRwdq0jfX14rD4VhIIIqi0tPTo7Y3bZr9j0BDQ+OcANpBrc+cUd+bsGPHjoVbMJvNjDY4MhxYIKyRkXFNmKwnUOOaHoIgKIcOHVLS6ZSiL6RPxsm8fn1JIxLXORxOYjjyO1Br0ifjixpRK8SYvb29aDA3Gi4GnZ2dcHPf7/czi72dYXR0RP1Sa2srPPHEF9SFKEA8obqVzJP+gtiuh27/t8xpdtCPlfNCmaBMUCbQyn8FGAC9/qu08ZRYywAAAABJRU5ErkJggg==');
+    background-repeat: no-repeat;
+    background-position: 1px -89px;
+    vertical-align: bottom;
+    width: 18px;
+    height: 17px;
+    display: inline-block; 
+}
+
+.menu a:hover,
+.menu a:active {
+    color: blue;
+    text-decoration: underline;
+}
+.menu a:target:hover,
+.menu a:target:active { 
+    text-decoration: none;
+}
+
+.menu a:target span.noob {      background-position: 1px -89px; }
+.menu a:target span.bronze {    background-position: 1px -0px; }
+.menu a:target span.silver {    background-position: 1px -31px; }
+.menu a:target span.gold {      background-position: 1px -61px; }
+
+.menu, #hud {
+    font-size: 11pt;
+    line-height: 13pt;
+    color: #d3d5d7;
+}
+
+#hud #bug {
+    background: #eeeeee;
+    border-bottom: 1px solid pink;
+    color: #b0b0b0;
+    padding: 0 0.5em; 
+    cursor: pointer;
+    display: none;
+}   
+
+#hud #bug:hover {
+    background: pink;
+    color: black;
+}
+
+#if-browser div {
+    display: none;
+    padding: 1em;
+}
+
+#if-browser {
+    width: 20em;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.about {
+    position: absolute;
+    top: -35px;
+    left: 0px;
+    width: 100%;
+    
+    color: #b0b0b0;
+}
+
+.about2 {
+    position: absolute;
+    bottom: -35px;
+    left: 0px;
+    width: 100%;
+    color: #b0b0b0;
+}
+
+#map #old_browser {
+    padding: 1em;
+    font-weight: bold;
+    color: gray;
+}
+
+#map:hover #old_browser  {
+    color: black;
+}
+
+#map #old_browser a {
+    color: inherit;
+}
+
+#map:hover #old_browser a:hover {
+    color: blue;
+}
+
+#counter-sandbox {
+    display: inline-block;
+    margin-left: 1em;
+    width: 2px; /* test */
+    height: 0.5em;
+    overflow: hidden;
+}
+
+#counter-sandbox:before {
+    content: '|';
+    display: block;
+    position: absolute;
+    width: 2px; /* test */
+    height: 1em;
+    background: white;
+    color: white;
+    overflow: hidden;
+}
+
+#counter-sandbox a {
+    cursor: default !important;
+}
+
+#counter-sandbox img[src*="file://static.getclicky.com"] {
+    display: none;
+}
+
+    </style>
+    <style id="textures"></style>
+    <script>
+var GAME = {
+    modes : {
+        tiny:   { x:8,  y:8,    n:10,   t1:30,  t2:10,  t3:4 },
+        normal: { x:16, y:16,   n:40,   t1:70,  t2:40,  t3:26 },
+        expert: { x:30, y:16,   n:99,   t1:250, t2:150, t3:100 },
+        epic:   { x:60, y:32,   n:320,  t1:999, t2:500, t3:250 } /* should check this */
+    },
+    storage : null,
+    _make_threads : 0, /* for debug only */
+    slowpoke : false,
+    map : null
+};      
+
+function $ ( s ) {
+    return document.querySelector( s );
+}
+
+function $1 ( s ) {
+    return document.getElementById( s );
+}
+
+function MinesweeperMap ( ops ) {
+    var _m = this;
+
+    ////////// FUNCTIONS
+    var d = [
+        {x: -1, y: -1},
+        {x: -1, y: 0},
+        {x: -1, y: 1},
+        {x: 0, y: -1},
+        {x: 0, y: 1},
+        {x: 1, y: -1},
+        {x: 1, y: 0},
+        {x: 1, y: 1}
+    ];
+    
+    _m.getCell = function ( x, y ) {
+        if( 1*x > _m.width || 1*y > _m.height) {
+            return false;
+        }
+        if( 1*x < 0 || 1*y < 0 ) {
+            return false;
+        }
+        if( !(_m.cells[y] instanceof Array)) {
+            return false;
+        }
+        //if( !(_m.cells[y][x] instanceof Object)) {
+        //  return false;
+        //} 
+        return _m.cells[y][x];  
+    };
+    
+    _m.preCount3BV = function ( w, h ) {
+        var z = null;
+        for( var i = 0; i < h; i++) {
+            for( var j = 0; j < w; j++) {   
+                z = _m.getCell(j, i);                                                   //$('#c-x' + j + 'y' + i).style.background = "_lime";
+                if( z.hasBomb ) {
+                    z.q_3bv = -1;                                                       //$('#c-x' + j + 'y' + i).style.background = "magenta";
+                    continue;
+                }
+                if( z.q == 0) {
+                    if( z.q_3bv == 0 ) {
+                        z.q_3bv = 1;                                                        //$('#c-x' + j + 'y' + i).style.background = "red"; $( '#c-x' + j + 'y' + i ).style.outline = "2px solid orange;";
+                    }
+                    _m.fillArea3BV(j, i);
+                }
+            }
+        }       
+    };
+    
+    _m.count3BV = function ( w, h ) {
+        _m.preCount3BV( w, h );
+        var c = 0, z = null;
+        for( var i = 0; i < h; i++) {
+            for( var j = 0; j < w; j++) {   
+                z = _m.getCell(j, i);
+                //var ss = '#t-x' + j*1 + 'y' + i*1;
+                //$(ss).innerHTML = (z.q_3bv ? z.q_3bv : "*");
+                if( z.q_3bv > -1 ) {
+                    c++;                                                                //$('#c-x' + j + 'y' + i).style.background = "green";
+                }
+            }
+        }       
+        return c;
+    };
+    
+    _m.fillArea3BV = function ( x, y ) {
+        for( var i = 0; d[i]; i++) {
+            var z = _m.getCell( x + d[i].x, y + d[i].y );
+            if( !z ) {
+                continue;
+            }   
+            //var s = '#c-x' + (x + d[i].x)*1 + 'y' + (y + d[i].y)*1;                       //$( s ).style.outline = "1px solid red;";
+            if( z.q_3bv == 0 ) {
+                z.q_3bv = -1;                                                           //$( s ).style.outline = "1px solid blue";
+                if( z.q == 0 ) {
+                    _m.fillArea3BV( x + d[i].x, y + d[i].y );   
+                }
+            }
+        }
+        return;
+    };
+    
+    _m.countBombs = function ( x, y ) {
+        return _m.count(x,y,'hasBomb');
+    };
+
+    _m.countFlags = function ( x, y ) {
+        return _m.count(x,y,'flag');
+    };
+    
+    _m.count = function ( x, y, what ) {
+        var c = 0, z;
+        for( var i = 0; d[i]; i++) {
+            z = _m.getCell( 1*x + d[i].x, 1*y + d[i].y );
+            if( z ) {
+                c += z[what] ? 1 : 0;
+            } 
+        }
+        return c;       
+    };
+    
+    var id2xy = function ( id ) {
+        var x = id.split('y');
+        var y = x[1];
+        x = x[0].split('x')[1];
+        return {'x':x, 'y':y};
+    };
+    
+    _m.force = function ( rawId ) {
+        var r = id2xy( rawId );
+        return _m.forceCells( r.x, r.y );   
+    };
+    
+    _m.flag = function ( rawId, el ) {
+        var el = el | null;
+        var r = id2xy( rawId );
+        return _m.toggleFlag( r.x, r.y, el );   
+    };
+    
+    _m.open = function ( rawId, el ) {
+        var el = el | null;
+        var r = id2xy( rawId );
+        return _m.openCell( r.x, r.y, el ); 
+    };
+    
+    _m.toggleFlag = function ( x, y, el ) {
+        var cell = _m.getCell( x, y );
+        if( !cell ) {
+            return false;
+        }
+        if( cell.isOpen ) {
+            return false;
+        }
+        if( !el ) {
+            var el = $1('t-x' + x + 'y' + y);
+        }
+        if( cell.flag ) {
+            cell.flag = false;
+            el.className = 'tile';
+            _m.flagsLeft++;
+            return true;
+        }
+        if( _m.flagsLeft < 1 ) {
+            return false;
+        }
+        cell.flag = true;
+        el.className = 'tile flag';
+        _m.flagsLeft--;
+        return true;
+    };  
+    
+    _m.forceCells = function ( x, y ) {
+        var cell = _m.getCell( x, y );
+        if( !cell ) {
+            return false;
+        }
+        if( !cell.isOpen ) {
+            return false;
+        }
+        if( _m.countFlags(x, y) == cell.q && cell.q > 0 ) {
+            var rF = false;
+            for( var i = 0; d[i]; i++ ) {
+                rF |= _m.openCell( 1*x + d[i].x, 1*y + d[i].y );
+            }
+            return rF;
+        }
+        return false; // kinda overkill
+    };
+    
+    _m.openCell = function ( x, y, el ) {
+        if( _m.state == 'ready' ) {
+            _m.state = 'active';
+            _m.startTime = (new Date()).getTime();
+        }
+        if( _m.state == 'defeat' || _m.state == 'victory' ) {
+            return false;
+        }
+        var cell = _m.getCell( x, y );
+        if( !cell ) {
+            return false;
+        }
+        if( cell.flag ) {
+            return false;
+        }
+        if( cell.isOpen ) {
+            return false;   
+        }
+        if( !el ) {
+            var el = $1('t-x' + x + 'y' + y);
+        }
+        if( cell.hasBomb ) {
+            if( _m.clicks < 2 ) {
+                _m.re( x, y );
+            } else {
+                _m.die( el );                   
+            }
+            return false;
+        }
+        cell.isOpen = true; 
+        el.innerHTML = (cell.q > 0) ? cell.q : '';
+        el.className = 'td x' + cell.q;
+        _m.cellsLeft--;
+        if( _m.cellsLeft < 1 ) { 
+            _m.win();
+        }
+        if( cell.q == 0 ) {
+            for( var i = 0; d[i]; i++ ) {
+                _m.openCell( 1*x + d[i].x, 1*y + d[i].y );
+            }
+        }
+        return true;
+    };
+    
+    _m.win = function ( ) {
+        _m.state = 'victory';
+        _m.endTime = (new Date()).getTime();
+        _m.totalTime = ((_m.endTime - _m.startTime)*0.001).toFixed(0);
+        var overlay = document.createElement( 'div' );
+        overlay.className = 'overlay victory';
+        overlay.innerHTML = '<span>'  + _m.totalTime + '</span>';
+        $1('map').appendChild( overlay );
+        $1('timer1').innerHTML = _m.totalTime;
+        $1('map').className = 'win';
+        $('#map .about2 span').innerHTML = x3bv;
+        // save
+        var ls = GAME.storage;
+        var k = 'record-' + modeName;
+        if(     !( k in ls )
+            ||  typeof ls[ k ] == 'undefined'
+            ||  1*ls[ k ] > _m.totalTime
+        ) {
+            ls[ k ] = _m.totalTime; 
+            parseRecord( modeName );
+        }
+    };
+    
+    _m.re = function ( x, y ) {
+        //console.log( 'RESTART');
+        _m.state = 'defeat';
+        remake( modeName, x, y );
+    };  
+    
+    _m.die = function ( el ) {
+        _m.state = 'defeat';
+        var cooldown = 1000;
+        var game_duration = (new Date()).getTime() - _m.startTime;
+        switch( true ) {
+            case ( game_duration > 30000 ):
+                cooldown = 1500;
+            break;      
+            case ( game_duration > 15000 ):
+                cooldown = 800;
+            break;
+            case ( game_duration > 5000 ):
+                cooldown = 200;
+            break;
+            default:
+                cooldown = 0; //125;
+            break;              
+        }
+        if ( el ) {
+            el.className = 'td bomb fail';
+        }
+        var overlay = document.createElement( 'div' );
+        overlay.className = 'overlay gameover';
+        if( _m.width * _m.height > 100 ) {
+            overlay.innerHTML = '<span>TRY AGAIN</span>';
+        } else {
+            overlay.innerHTML = '<span> </span>'; // force Opera redraw for 3bv display
+        }
+        $1('map').appendChild(overlay);
+        setTimeout( function() {
+            if( overlay ) {
+                overlay.className = 'overlay gameover re';
+                overlay.addEventListener( 'click', function() {
+                    make( modeName );
+                }, false); // !!!!!!!
+            }
+        }, cooldown);           
+        $('#map .about2 span').innerHTML = x3bv;
+
+        _m.showBombs();
+    };
+    
+    _m.showBombs = function ( ) {
+        for( var i = 0; _m.getCell(i,0); i++ ) {
+            for( var j = 0; _m.getCell(i,j); j++ ) {
+                if( !_m.getCell(i,j).hasBomb && _m.getCell(i,j).flag ) {
+                    var t = $1('t-x' + i + 'y' + j);
+                    t.innerHTML = "'"; // wrong flag marker
+                    t.className += ' wrong';
+                }
+            }
+        }
+        $1('map').className = 'defeat';
+    };
+    
+    _m.plantBombs = function ( ) {
+        var
+            r = Math.random,
+            x = _m.width,
+            y = _m.height,
+            cycles_max = x * y,
+            c = 0,
+            i = 0,
+            x1 = 0,
+            y1 = 0;
+            
+        while( i < _m.bombs ) {
+            x1 = (r() * (x - 1)).toFixed(0);
+            y1 = (r() * (y - 1)).toFixed(0);
+            var z = _m.getCell( x1, y1 );
+            if( !z ) {
+                continue;
+            }
+            if( z.isSafe ) {
+                continue;
+            }
+            if( !z.hasBomb ) {
+                z.hasBomb = true;
+                i++;
+            }
+            c++;
+            if( c > cycles_max ) {
+                throw('execution cycle limit reached');
+                break;
+            }
+        }
+    };
+    
+    _m.indexMap = function ( ) {
+        for( var i = 0; i < _m.height; i++ ) {
+            for( var j = 0; j < _m.width; j++ ) {
+                if( _m.cells[i][j].hasBomb ) {
+                    continue;
+                }
+                _m.cells[i][j].q = _m.countBombs( j, i );
+            }
+        }
+    };
+    ///
+    var modeName = ops.mode; 
+    ops.x = (1*ops.x).toFixed(0);
+    ops.y = (1*ops.y).toFixed(0);
+    ops.n = (1*ops.n).toFixed(0);
+    
+    var _x = ops.x;
+    var _y = ops.y;
+    var _n = ops.n;
+    
+    _m.width = ops.x;
+    _m.height = ops.y;
+
+    _m.bombs = (_n > (_x * _y)) ? (_x * _y - 1) : _n;
+    var x3bv_limit = _n - 1;
+
+    _m.cells = [];
+    for( var i = 0; i < _y; i++ ) {
+        _m.cells[i] = [];
+        for( var j = 0; j < _x; j++ ) { 
+            _m.cells[i][j] = {
+                hasBomb : false,
+                isSafe : false,
+                flag : false,
+                q_3bv : 0
+            };  
+        }   
+    }
+    if( ops.re ) {
+        try {
+            //console.log('remaking map..');
+            var z = _m.getCell(ops.safeX, ops.safeY);
+            z.isSafe = true;
+        } catch( err ) {
+            //console.log('unable to remake' + err);
+            _m.die();
+        }   
+    }
+    
+    var x3bv = 0;
+    for( var i = 0; x3bv <  x3bv_limit || i > 10; i++ ) {
+        _m.plantBombs();
+        _m.indexMap();
+        x3bv = _m.count3BV( _x, _y );
+    }
+    
+    _m.cellsLeft = _x * _y - _n;
+    _m.flagsLeft = _n;
+    _m.startTime = 0;
+    _m.endTime = 0;
+    _m.clicks = 0;
+    _m.clicksWasted = 0;
+
+    $1('hud').className = '';
+    _m.state = 'init'; // 'active', 'paused', 'defeat', 'victory'
+    return _m;
+}
+
+try {
+    /* hide from old browsers */
+    CanvasRenderingContext2D.prototype.fillRoundedRect = function fillRoundedRect ( x, y, w, h, r ) {
+        /*
+        x: Upper left corner's X coordinate
+        y: Upper left corner's Y coordinate
+        w: Rectangle's width
+        h: Rectangle's height
+        r: Corner radius
+         */
+        this.beginPath();
+        this.moveTo(x+r, y);
+        this.lineTo(x+w-r, y);
+        this.quadraticCurveTo(x+w, y, x+w, y+r);
+        this.lineTo(x+w, y+h-r);
+        this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+        this.lineTo(x+r, y+h);
+        this.quadraticCurveTo(x, y+h, x, y+h-r);
+        this.lineTo(x, y+r);
+        this.quadraticCurveTo(x, y, x+r, y);
+        this.fill();        
+    };  
+} catch(e) {
+    
+}
+
+
+function bakeGradients () {
+    var canvas = document.createElement('canvas');
+    canvas.width    = 25;
+    canvas.height   = 25;
+    try {
+        var ctx = canvas.getContext('2d');  
+    } catch(e) {
+        throw ('browser does not support canvas. ' + e);
+    }
+    var _bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    _bg.addColorStop(0.05, '#f9fbfd');
+    _bg.addColorStop(0.65, '#d3d5d7'); //     '#d3d5d7'); 
+    var _border = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    _border.addColorStop(0.45, '#ffffff');
+    _border.addColorStop(0.55, '#707070');
+
+    // assign gradients to fill and stroke styles
+    ctx.fillStyle = _bg;
+    ctx.strokeStyle = _border;
+
+    ctx.fillRoundedRect(1, 1, canvas.width-2, canvas.height-2, 3);
+    ctx.stroke();
+    var _bg1x = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    _bg1x.addColorStop(0.05, '#d3d5d7'); //   '#d3d5d7'); 
+    _bg1x.addColorStop(0.65, '#e3e5e7');
+    
+    ctx.fillStyle = _bg1x;
+    ctx.strokeStyle = 'rgba(0,0,0,0)';
+    ctx.fillRoundedRect(4, 4, canvas.width-8, canvas.height-8, 4);
+    ctx.stroke();
+    //Apply the gradient to the selectedElement
+    var _img = "#map .tile { ";
+    _img += "background: #d3d5d7 url('" + canvas.toDataURL() + "') no-repeat;";
+    //_img += "background: transparent url('" + canvas.toDataURL() + "') no-repeat;";
+    //_img += "background: #eeeeee;";
+    _img += " }";
+    
+
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = '#FF0000';
+    ctx.strokeStyle = '#FF0000';
+    ctx.fillRoundedRect(1, 1, canvas.width-2, canvas.height-2, 3);
+    ctx.stroke();
+    //
+    _img += "#map .flag.wrong { ";
+    _img += "background: #d3d5d7 url('" + canvas.toDataURL() + "') no-repeat;";
+    _img += " }";
+
+    $('style#textures').innerHTML = _img; // hack to allow playing from google cached version
+    canvas = null;
+    ctx = null;
+}
+
+function renderToHTML (obj) {
+    if( !obj ) {
+        return false;
+    }
+    var _tiles = '';
+    for(var i = 0; i < obj.height; i++) {
+        for(var j = 0; j < obj.width; j++) {
+            var z = obj.getCell( j, i );
+            if( z ) {
+                var _xClass = '';
+                if( z.hasBomb ) {
+                    _xClass = ' bomb';
+                }
+                if( z.q > 0 ) {
+                    _xClass = ' x' + z.q;
+                }
+                var t = 25 * i;
+                var l = 25 * j;
+                _tiles += '<div class="tile' + _xClass + '" id="t-x' + j + "y" + i + '" style="top: ' + t + 'px; left: ' + l + 'px;" >+</div>';
+            }
+        }
+    }
+    var _header = '<div class="about">' + obj.width + 'x' + obj.height + ', ' +  obj.bombs + ' bombs.' + '</div>';
+    var _footer = '<div class="about2">3BV: <span>?</span></div>';
+    var _rasporka3 = "width: " + 25 * obj.width + "px; height: " + 25 * obj.height + "px;";
+    $1('map').setAttribute('style', _rasporka3);
+    obj.state = 'ready';
+    return ( _tiles + _header + _footer );
+}
+
+function attachIO() {
+    
+    var poke = function ( e ) {
+        var done = false;
+        var m  = GAME.map;
+        m.clicks++;
+        e.preventDefault();
+        if( e.target.className.indexOf('tile') !== -1 ) {
+            if ( e.button === 2 || ( e.button === 0 && e.ctrlKey === true ) ) {
+                done = m.flag( e.target.id, e.target ); 
+            }
+            if( e.button === 0 && e.ctrlKey === false ) {
+                done = m.open( e.target.id, e.target ); 
+            }
+            if( !done ) {
+                m.clicksWasted++;
+            }
+            e.stopPropagation();
+            return true;
+        }
+        if( e.target.className.indexOf('td') !== -1 ) {
+            if( e.button == 0 ) {
+                done = m.force( e.target.id );  
+            }   
+            if( !done ) {
+                m.clicksWasted++;
+            }
+            return true;
+        }
+    };
+/*  
+    // TESTING VERDICT: does not give any additional comfort
+    var hyperpoke_cache = null;
+    var hyperpoke = function ( e ) {
+        if( e.target === hyperpoke_cache ) {
+            return false;
+        }
+        if( e.button == 0 && e.shiftKey == true ) {
+            hyperpoke_cache = e.target;
+            poke(e);
+        }
+    }
+*/  
+    var timerCycle = function ( ) {
+        var output = $('#timer1');
+        //var output2 = $('#threads1');
+        var output3 = $('#cells1');
+        var output4 = $('#clicks1');
+
+        setInterval( function () {
+            var m  = GAME.map;
+            if( !m ) {
+                return false;
+            }
+            //output2.innerHTML = GAME._make_threads; 
+            output3.innerHTML = m.cellsLeft;
+            if( m.state != 'active' ) {
+                return false;
+            }
+            output4.innerHTML =  (m.clicks - m.clicksWasted) + ' (' + m.clicks + ')';
+            output.innerHTML = (m.startTime >  0) ? (((new Date()).getTime() - m.startTime) * 0.001).toFixed(0) : 0;
+        }, 1000);
+    };
+
+    timerCycle();
+//  $1('map').addEventListener('mouseover', hyperpoke, false);  
+    $1('map').addEventListener('mousedown', poke, false);
+    $1('map').addEventListener('click', function(e) {
+        /* futile attempt to fix double tap on iPad */
+        e.preventDefault();
+        return false;
+    }, false);
+    $1('map').addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
+}
+
+function make_map( x, y, b, mode, x0, y0 ) {
+    /* general purpose builder */
+    GAME._make_threads++;
+    var options = {
+        'x' : x,
+        'y' : y,
+        'n' : (b ? b : x * y / 6),
+        'mode' : (mode ? mode : 'custom')
+    };
+    if( typeof x0 !== 'undefined' && typeof y0 !== 'undefined') {
+        options.safeX = x0;
+        options.safeY = y0;
+        options.re = true;
+    } else {
+        options.re = false;
+    }
+
+    var _map = new MinesweeperMap( options );
+    $('#map').className = '';
+    $('#map').innerHTML = renderToHTML( _map ); 
+    $('#timer1').innerHTML = '0';
+    
+    GAME.map = _map;
+    if( options.re ) {
+        //console.log('clicking cell..');
+        GAME.map.clicks++;
+        GAME.map.open( 't-x' + options.safeX + 'y' + options.safeY, null );
+        //console.log('done safe restart!');
+    }
+    GAME._make_threads--;
+}
+
+function make( modeName ) {
+    var _ms = GAME.modes;
+    make_map( _ms[modeName].x, _ms[modeName].y, _ms[modeName].n, modeName );    
+}
+
+function remake( modeName, x, y ) {
+    var _ms = GAME.modes;
+    make_map( _ms[modeName].x, _ms[modeName].y, _ms[modeName].n, modeName, x, y );  
+}
+
+function parseRecord ( modeName ) { 
+    var bestTime = Infinity;
+    try {
+        bestTime = GAME.storage[ 'record-' + modeName] || Infinity;     
+    } catch( err ) {
+        
+    }
+
+    var medal = 'noob';
+    switch( true ) {
+        case ( bestTime < 1*GAME.modes[modeName].t3 ):
+            medal = 'gold';
+        break;  
+        case ( bestTime < 1*GAME.modes[modeName].t2 ):
+            medal = 'silver';
+        break;  
+        case ( bestTime < 1*GAME.modes[modeName].t1 ):
+            medal = 'bronze';
+        break;  
+        default:
+            bestTime = '';
+            // noob
+        break;  
+    } 
+    $( '#' + modeName + ' span' ).className = medal;
+    $( '#' + modeName + ' b' ).innerHTML = bestTime;
+}
+
+function init ( ) {
+    try {
+        bakeGradients(); // and detect ancient browsers
+        detectOldBrowsers();
+        GAME.storage = window.localStorage; 
+        var ready = false;
+        for( var i in GAME.modes) {
+            parseRecord( i );
+            (function(m) {
+                $1(m).addEventListener('click', function() {
+                    make( m );
+                }, false);
+            })(i);
+            if( document.location.hash.replace('#', '') == i ) {
+                make( i );
+                ready = true;       
+            }
+        }
+        if( !ready ) {
+            make( 'expert' );
+            document.location.hash = 'expert';
+        }
+        (function() {
+            var bomb_img = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIDSURBVHja7JW/a9tAFMdPcmrXicGmVklIMKWlUON2KCEO7ZAhYyDeMmQJWT2ajKFzJy/9G1p389ShnYoJKSEkQwIZArFLIRkS/yAQtMhGev0+cw7iepKrwdChDz6cdLp77+57754MIhKTNFNM2P6tAIZh5MBapAh8BjoC7BM4Doqv8xfm/Cl44XPwCDjAA8/l+8hWwCudL0O3Wsgwg+ZCSvgBzINV8FIO+QXOQA10wVdwBfLw54yVSK6OHfOLzS2CUiwWI9k34hq48vljFIlYzzfgjuek02kqlUpUqVSoUCgMgymBmkELDjuDHR5vmiaVy2Xq9Xo0GAyoXq9TNptVA5yAhag7OOLxyWSSGo0GeZ5HbJ1Oh4rFohqAdV/nM1N9mcrhWqCOxwFY4j44Fu12+36MbdsCO1HzIg6+gG+Yn/J/mFIGPgQ/wS2wuKPf74tqtTpsLcsStVpNtFqtoHsyJ2mOyyLe2aFfBs6gRCIxPBNFnhFbLEKoRP7sBd/9Ha7rCsdxhpJpjHe9J+eJv7kHbDlwE7BalR8gpvMXVuzy4PGYUubKu/IabILUH1UhoFTE5Q1+AD6DafAWzMohnJan4ABkwDa4BIvw1w3LIn/avZOTd0EWPAP78tuGrx49AedgGfSilGudfO/lrdWZ9gyMKP9kSMc7zqgyhM75/9MfZ78FGADUwbryqz3ywAAAAABJRU5ErkJggg==';
+            var st = document.createElement('style');
+            var hh = '\n #map.defeat .bomb {    background-image: url(' + bomb_img +'); }';
+            hh += 'noscript { display: none; }';
+            st.innerHTML = hh;
+            $('head').appendChild(st);
+            $('link[rel="icon"]').href = bomb_img;
+        })();
+        (function() {
+            $('a[href*="getcli' + 'cky"]').title = "";
+            $('img[src*="getcli' + 'cky"]').alt = "";
+        })();           
+        attachIO();
+
+    } catch( err ) {
+        $1('old_browser').innerHTML = 'To play minesweeper you need a <a href="http://www.browserchoice.eu/">modern browser</a>.<br />';
+        //console.log( err );
+    }
+}
+
+function detectOldBrowsers() {
+    if( /Opera/i.test( navigator.userAgent ) ) {
+        var x1 = navigator.userAgent.split('/');
+        var opera_version = x1[x1.length-1];
+        $('#hud #bug').style.display = 'inline-block';
+        $('#hud #bug').addEventListener('click', function() {
+            var inf = $1('for-opera').style;
+            if( inf.display == 'block') {
+                inf.display = 'none';
+                $('#hud #bug').style.display = 'none';
+            }else {
+                inf.display = 'block';
+            }   
+        }, false);
+    }
+    if( /MSIE\s[6-8]\./.test( navigator.userAgent ) ) {
+        //$1("for-ie").style.display = "block";
+    }
+    if( /gecko/i.test( navigator.userAgent ) && !(/webkit/i).test( navigator.userAgent ) ) {
+        //$1("for-firefox").style.display = "block";
+    }
+}
+
+if( document.addEventListener ) {
+    document.addEventListener('DOMContentLoaded', init, false);
+} else {
+    GAME.slowpoke = true;
+}
+
+    </script>
+</head>
+<body onload="if(GAME.slowpoke) { init(); }">
+    <div id="page">
+        <div class="menu">
+            <a id="tiny"    href="#tiny"    >Tiny<span class="noob" > </span><b></b></a> | 
+            <a id="normal"  href="#normal"  >Normal<span class="noob" > </span><b></b></a> | 
+            <a id="expert"  href="#expert"  >Expert<span class="noob" > </span><b></b></a> | 
+            <a id="epic"    href="#epic"    >Epic<span class="noob" > </span><b></b></a>
+        </div>
+        <div id="map">
+            <div id="old_browser">Loading...</div>
+        </div>
+        <div id="hud" class=""><span title="Elapsed time. The faster you solve the puzzle, the better player you are.">Time: <b id="timer1">0</b></span> | <b id="cells1">?</b> free cells  left | Clicks: <b id="clicks1">?</b>
+            <span id="bug">Bug</span>
+            <div id="counter-sandbox" onclick="return false;">
+<a title="Web Statistics" href="http://getclicky.com/66487162"><img alt="Web Statistics" src="//static.getclicky.com/media/links/badge.gif" border="0" /></a>
+<script type="text/javascript">
+var clicky_site_ids = clicky_site_ids || [];
+clicky_site_ids.push(66487162);
+(function() {
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = '//static.getclicky.com/js';
+    ( document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0] ).appendChild( s );  
+})();
+</script>
+</div>
+        </div>
+        <!-- Threads: <b id="threads1">?</b> | <b id="bombs1">?</b> bombs | <span title="Minimum number of clicks required to solve the puzzle, using only your LEFT button.">3BV: <b id="x3bv">?</b></span> |  -->
+        <div id="if-browser">
+            <div id="for-opera">
+            To play with maximum comfort in Opera browser, you must:<br />
+            <ul><li>Enable <a href="opera:config#UserPrefs|Allowscripttoreceiverightclicks">right click</a> detection<br />
+            <li>Disable <a href="opera:config#UserPrefs|EnableGesture">regular mouse gestures</a> <br />
+            <li>Disable <a href="opera:config#UserPrefs|EnableMouseFlips">rocker gestures</a> (aka MouseFlips)<br />
+            </ul>   
+            Remember to save your settings after you make them.
+            <br /><br />
+            Also, you can for vote for Opera to implement site-specific disabling of those features <a href="http://my.opera.com/community/forums/topic.dml?id=1025232">here</a>
+            </div>
+            <div id="for-firefox">
+                <!-- No known bugs in Firefox now. -->
+            </div>
+            <div id="for-ie">
+                IE 8 and older is not compatible with our game :( Please upgrade to IE 9.
+            </div>
+            <div id="for-chrome">
+                <!-- No known bugs in Chromes now. -->
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
