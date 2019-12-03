@@ -3,43 +3,10 @@
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
-    <title>Minesweeper 2011 | Play online at Vesna.in.ua</title>
+    <title>SWeePER</title>
     <meta name="description" content="Classic Minesweeper game, now in HTML5/CSS. Two-button mouse recommended for input. Modern browser required to play." />
-    <meta name="version" content="1.1.1" />
-    <meta name="author" content="Constantine Vesna" />
-    <meta name="contact" content="http://my.opera.com/c69/" />
-<!--
-
-For bugs, questions, or general feedback - contact me at my blog.
-
-Playing with stylus or touch input is possible, but not very comfortable,
- because its hard to do 'right click' with them.
-If you don't have right mouse button, or play with touch/stylus - use 'Ctrl' key to flag mines.
-
-Device experience:
-- Android smartphones: only Novice mode is recommended. Flagging is not possible.
-- iPad: Novice or Normal modes are recommended. Flagging is not possible. Rapid tapping will center screen. Minor redraw delays.
-- other devices: untested. (your experience is welcome)
-
-__________
-Changelog:
-
-1.1:
-+ Removed possibility to die on first-click 
-+ Disabled annoying tap highlight on iPad
-+ Game loads faster now
-+ Enabled playing from Google cache
-+ Added white background to look better on iframe includes
-
-1.1.1:
-+ Added fix for bug with gradients in Opera 11.60 ( DSK-347689 )
-
-1.2:
-TODO: Disable double-tap zooming on iPad
-TODO: Disable delayed texture-loading on iPad (bombs are not shown first time you die )
-
--->
-    <link rel="icon" type="image/png" href="" />
+  
+    <link rel="icon" type="image/png" href="img/icon.png" />
     
     <style>
 body {      
@@ -50,7 +17,7 @@ body {
 
 #map {
     text-align: center;
-    border: 48px solid #eeeeee;
+    border: 48px solid #d0ccff;
     border-right-width: 80px;
     border-left-width: 80px;
     position: relative; 
@@ -68,7 +35,7 @@ body {
 
 #map,
 #map .td {
-    background-color: #d3d5d7;
+    background-color: #ebe99b;
 }   
 
 #map .td {
@@ -79,8 +46,8 @@ body {
     font-size: 18px;
     padding: 0;
 
-    border-right: 1px dotted #aaaaaa;
-    border-bottom: 1px dotted #aaaaaa;
+    border-right: 1px dotted #c4a3a3;
+    border-bottom: 1px dotted #c4a3a3;
     font-weight: bold;
     font-family: "Courier New";
     
@@ -91,8 +58,8 @@ body {
 
 #map.defeat .bomb {
     color: transparent;
-    border-right: 1px dotted #aaaaaa;
-    border-bottom: 1px dotted #aaaaaa;
+    border-right: 1px dotted #c4a3a3;
+    border-bottom: 1px dotted #c4a3a3;
 
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -101,8 +68,8 @@ body {
 
 #map .bomb.fail {
     border: 0px solid transparent;
-    border-right: 1px dotted #aaaaaa;
-    border-bottom: 1px dotted #aaaaaa;
+    border-right: 1px dotted #c4a3a3;
+    border-bottom: 1px dotted #c4a3a3;
     -moz-box-shadow: inset 0px 0px 10px red;    
     box-shadow: inset 0px 0px 10px red;
 }
@@ -240,7 +207,7 @@ body {
 
 .menu a:target span {
     margin-left: 0.3em;
-    background-image: url('data:image/png;base64,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');
+    background-image: url('загружено.png');
     background-repeat: no-repeat;
     background-position: 1px -89px;
     vertical-align: bottom;
@@ -1061,13 +1028,13 @@ function init ( ) {
             document.location.hash = 'expert';
         }
         (function() {
-            var bomb_img = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIDSURBVHja7JW/a9tAFMdPcmrXicGmVklIMKWlUON2KCEO7ZAhYyDeMmQJWT2ajKFzJy/9G1p389ShnYoJKSEkQwIZArFLIRkS/yAQtMhGev0+cw7iepKrwdChDz6cdLp77+57754MIhKTNFNM2P6tAIZh5MBapAh8BjoC7BM4Doqv8xfm/Cl44XPwCDjAA8/l+8hWwCudL0O3Wsgwg+ZCSvgBzINV8FIO+QXOQA10wVdwBfLw54yVSK6OHfOLzS2CUiwWI9k34hq48vljFIlYzzfgjuek02kqlUpUqVSoUCgMgymBmkELDjuDHR5vmiaVy2Xq9Xo0GAyoXq9TNptVA5yAhag7OOLxyWSSGo0GeZ5HbJ1Oh4rFohqAdV/nM1N9mcrhWqCOxwFY4j44Fu12+36MbdsCO1HzIg6+gG+Yn/J/mFIGPgQ/wS2wuKPf74tqtTpsLcsStVpNtFqtoHsyJ2mOyyLe2aFfBs6gRCIxPBNFnhFbLEKoRP7sBd/9Ha7rCsdxhpJpjHe9J+eJv7kHbDlwE7BalR8gpvMXVuzy4PGYUubKu/IabILUH1UhoFTE5Q1+AD6DafAWzMohnJan4ABkwDa4BIvw1w3LIn/avZOTd0EWPAP78tuGrx49AedgGfSilGudfO/lrdWZ9gyMKP9kSMc7zqgyhM75/9MfZ78FGADUwbryqz3ywAAAAABJRU5ErkJggg==';
+            var bomb_img = 'img/bombina.png';
             var st = document.createElement('style');
             var hh = '\n #map.defeat .bomb {    background-image: url(' + bomb_img +'); }';
             hh += 'noscript { display: none; }';
             st.innerHTML = hh;
             $('head').appendChild(st);
-            $('link[rel="icon"]').href = bomb_img;
+            //$('link[rel="icon"]').href = bomb_img;
         })();
         (function() {
             $('a[href*="getcli' + 'cky"]').title = "";
